@@ -1,0 +1,133 @@
+#include <Nokia2.h>
+LCD Display = LCD();
+
+#include <RCSwitch.h>
+RCSwitch mySwitch = RCSwitch();
+
+//#define LED_PIN		13
+const int ledPin =  13;
+int ledState = LOW; 
+
+int ldate;
+long previousMillis = 0;        
+long interval = 10000;
+
+
+/*
+LCD_CS   5
+LCD_Data 6
+LCD_CLK  7
+
+Пиксель                Display.drawPixel(x,y,color);
+Символ                 Display.drawChar(x,y,char,color,bg,size);
+Линия                  Display.drawLine(x0,y0,x1,y1,color);
+Круг                   Display.drawCircle(x0,y0,radius,color);
+Незнаю                 Display.drawCircleHelper(x0,y0,radius,cornername,color);
+Залитый круг           Display.fillCircle(x0,y0,radius,color);
+незнаю                 Display.fillCircleHelper(x0,y0,radius,cornername,delta,color);
+Треугольник            Display.drawTriangle(x0,y0,x1,y1,x2,y2,color);
+Залитый треугольник    Display.fillTriangle(x0,y0,x1,y1,x2,y2,color);
+Прямоугольник          Display.drawRoundRect(x0,y0,width,height,radius,color);
+со скругленными краями
+Прямоугольник          Display.fillRoundRect(x0,y0,width,height,radius,color);
+со скругленными краями
+Курсок в координаты    Display.setCursor(x,y);
+Цвет текста            Display.setTextColor(color);
+Незнаю                 Display.setTextColor(color,bg);
+Размер текста          Display.setTextSize(size);
+*/
+
+void setup()
+{
+  Display.Setup();
+  Display.Clear();
+
+  // передатчик на цифровом пине 10
+  mySwitch.enableTransmit(10);
+ // mySwitch.enableReceive(1); // Receiver on inerrupt 0 => that is pin #2
+  Serial.begin(9600);
+  pinMode(ledPin, OUTPUT);
+
+  
+  Serial.println("Setup OK");
+  Display.print("Setup OK");
+  Display.Update();
+  
+}
+
+
+// первый бит всегда 0
+// следующие три бита, соответствующие номерам каналов (розеток)
+// 8 - 000
+// 7 - 100
+// 6 - 010
+// 5 - 110
+// 4 - 001
+// 3 - 101
+// 2 - 011
+// 1 - 111
+// биты 5-8 - 0000
+// последние четыре бита: F000 - ВКЛ
+//                        0000 - ВЫКЛ
+
+
+void loop()
+{
+  /*
+  Display.setTextColor(1);
+  Display.setCursor(50,5);
+  Display.print("kuku");
+  Display.Update();
+  Display.drawRoundRect(48,1,45,15 ,3,255);
+  Display.fillCircle(70,40,22,1);
+  Display.setCursor(50,35);
+  Display.setTextColor(0);
+  Display.print("Arduino");
+  Display.drawChar(0,37,82,1,0,4);
+  Display.drawChar(21,45,82,1,0,3);
+  Display.drawChar(37,51,82,1,0,2);
+  Display.drawLine(0,0,0,20,1);
+  Display.drawTriangle(3,0,3,20,20,20,1);
+  */  
+  //Display.Update();
+  
+  unsigned long currentMillis = millis();
+  
+  //проверяем не прошел ли нужный интервал, если прошел то
+  if(currentMillis - previousMillis > interval) {
+    // сохраняем время последнего переключения
+    previousMillis = currentMillis; 
+ 
+  // переключаем розетку #2 с интервалом в секунду
+  mySwitch.sendTriState("01110000F000");
+  mySwitch.sendTriState("00110000F000");
+  mySwitch.sendTriState("01010000F000");
+  delay(100);
+  mySwitch.sendTriState("01110000F000");
+  mySwitch.sendTriState("00110000F000");
+  mySwitch.sendTriState("01010000F000");
+  delay(100);
+  mySwitch.sendTriState("01110000F000");
+  mySwitch.sendTriState("00110000F000");
+  mySwitch.sendTriState("01010000F000");
+  //delay(1000);  
+  //mySwitch.sendTriState("011100000000");
+  //mySwitch.sendTriState("001100000000");
+  //delay(1000);
+      
+  }
+  
+if (Serial.available( )) {         //если есть принятый символ,
+    ldate = Serial.read();            //  то читаем его и сохраняем в val
+    Display.Clear();
+    Display.setCursor(50,5);
+    Display.print(ldate);
+    Display.drawChar(0,37,ldate,1,0,4);
+    Display.Update();
+}
+
+
+
+}
+
+
